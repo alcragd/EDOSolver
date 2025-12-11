@@ -9,20 +9,37 @@ import org.scilab.forge.jlatexmath.*;
 import classes.ecCuadraticas;
 import classes.Complex;
 import classes.Pair;
+import classes.mathUtils;
 
 /**
- *
+ * Clase que representa la interfaz gráfica del solucionador de ecuaciones diferenciales
+ * Demuestra AGREGACIÓN: esta clase contiene objetos de tipo ecCuadraticas, Complex y Pair
+ * 
  * @author angel
  */
 public class frmSolver extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(frmSolver.class.getName());
+    
+    // ============= AGREGACIÓN EXPLÍCITA =============
+    // Esta clase contiene (agrega) objetos de otras clases
+    private ecCuadraticas ecuacionActual;        // Agregación de ecCuadraticas
+    private Pair<Complex, Complex> raicesActuales;  // Agregación de Pair<Complex, Complex>
+    private Complex raizCompleja1;               // Agregación de Complex
+    private Complex raizCompleja2;               // Agregación de Complex
 
     /**
      * Creates new form frmSolver
+     * Inicializa los objetos agregados
      */
     public frmSolver() {
         initComponents();
+        
+        // Inicializar objetos agregados
+        this.ecuacionActual = new ecCuadraticas();  // Objeto agregado
+        this.raicesActuales = null;                  // Se inicializa cuando se resuelve
+        this.raizCompleja1 = new Complex();          // Objeto agregado
+        this.raizCompleja2 = new Complex();          // Objeto agregado
         
         panSolution.setEnabled(false);
         panSolution.setVisible(false);
@@ -182,7 +199,7 @@ public class frmSolver extends javax.swing.JFrame {
         String sa = txtA.getText().trim();
         String sb = txtB.getText().trim();
         String sc = txtC.getText().trim();
-    
+
         if (sa.isEmpty() || sb.isEmpty() || sc.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Por favor llena todos los campos con números.");
             return;
@@ -194,18 +211,24 @@ public class frmSolver extends javax.swing.JFrame {
             int c = Integer.parseInt(sc);
 
             String yc;
-        
-            if(a!=0)
-               yc = secondOrderEc(a,b,c);
-            else if (b!=0)
-                yc=firstOrderEc(b,c);
+    
+            if(a != 0) {
+                // USANDO AGREGACIÓN: Creamos y almacenamos objeto ecCuadraticas
+                this.ecuacionActual = new ecCuadraticas(a, b, c);
+                yc = secondOrderEc(this.ecuacionActual);
+            }
+            else if (b != 0) {
+                // USANDO AGREGACIÓN: Creamos y almacenamos objeto ecCuadraticas
+                this.ecuacionActual = new ecCuadraticas(b, c);
+                yc = firstOrderEc(this.ecuacionActual);
+            }
             else {
                 JOptionPane.showMessageDialog(this, "La expresion \""+c+"y=0\" no es una ecuación differencial");
                 return;
             }
 
             TeXFormula Yc = new TeXFormula(yc);
-            TeXIcon iconYc=Yc.createTeXIcon(TeXConstants.STYLE_DISPLAY, 23);
+            TeXIcon iconYc = Yc.createTeXIcon(TeXConstants.STYLE_DISPLAY, 23);
 
             panSolution.setEnabled(true);
             panSolution.setVisible(true);
@@ -217,8 +240,30 @@ public class frmSolver extends javax.swing.JFrame {
         
     }//GEN-LAST:event_btnSolveActionPerformed
 
+    // ============= MÉTODOS CON AGREGACIÓN EXPLÍCITA =============
+    
+    /**
+     * Resuelve ecuación diferencial de primer orden
+     * Demuestra AGREGACIÓN: recibe un objeto ecCuadraticas agregado
+     * 
+     * @param ec objeto ecCuadraticas agregado que contiene los coeficientes
+     * @return String con la solución en formato LaTeX
+     */
+    private String firstOrderEc(ecCuadraticas ec) {
+        // AGREGACIÓN: Usamos el objeto ec agregado
+        return firstOrderEc(ec.getB(), ec.getC());
+    }
+
+    /**
+     * Resuelve ecuación diferencial de primer orden
+     * Versión sobrecargada que recibe parámetros primitivos
+     * 
+     * @param b coeficiente de y'
+     * @param c coeficiente de y
+     * @return String con la solución en formato LaTeX
+     */
     private String firstOrderEc(int b, int c) {
-        int gcd = ecCuadraticas.gcd(b, c);
+        int gcd = mathUtils.gcd(b, c);
         b /= gcd; 
         c /= gcd;
         
@@ -252,14 +297,46 @@ public class frmSolver extends javax.swing.JFrame {
         return y;
     }
 
-    private String secondOrderEc(int a,int b,int c){
-        ecCuadraticas ecCaracteristica=new ecCuadraticas(a,b,c);
-        Pair<Complex,Complex> roots=ecCaracteristica.getRoots();
-        int disc=ecCaracteristica.discriminante();
+    /**
+     * Resuelve ecuación diferencial de segundo orden
+     * Demuestra AGREGACIÓN: recibe un objeto ecCuadraticas agregado
+     * 
+     * @param ec objeto ecCuadraticas agregado que contiene los coeficientes
+     * @return String con la solución en formato LaTeX
+     */
+    private String secondOrderEc(ecCuadraticas ec) {
+        // AGREGACIÓN: Usamos el objeto ec agregado
+        return secondOrderEc(ec.getA(), ec.getB(), ec.getC());
+    }
+
+    /**
+     * Resuelve ecuación diferencial de segundo orden
+     * Versión sobrecargada que recibe parámetros primitivos
+     * Demuestra AGREGACIÓN: crea y utiliza objetos Pair<Complex, Complex>
+     * 
+     * @param a coeficiente de y''
+     * @param b coeficiente de y'
+     * @param c coeficiente de y
+     * @return String con la solución en formato LaTeX
+     */
+    private String secondOrderEc(int a, int b, int c){
+        // AGREGACIÓN: Creamos objeto ecCuadraticas
+        ecCuadraticas ecCaracteristica = new ecCuadraticas(a, b, c);
+        
+        // AGREGACIÓN: Obtenemos objeto Pair<Complex, Complex> agregado
+        Pair<Complex, Complex> roots = ecCaracteristica.getRoots();
+        this.raicesActuales = roots;  // Almacenamos las raíces agregadas
+        
+        // AGREGACIÓN: Obtenemos objetos Complex agregados del Pair
+        this.raizCompleja1 = roots.getFirst();
+        this.raizCompleja2 = roots.getSecond();
+        
+        int disc = ecCaracteristica.discriminante();
     
         String alpha,beta,alpha2;
-        alpha=roots.first.getAlpha(); beta=roots.first.getBeta();
-        alpha2=roots.second.getAlpha(); 
+        alpha = this.raizCompleja1.getAlpha(); 
+        beta = this.raizCompleja1.getBeta();
+        alpha2 = this.raizCompleja2.getAlpha(); 
         
         if("1".equals(alpha)) alpha="";
         if("-1".equals(alpha)) alpha="-";
@@ -267,9 +344,6 @@ public class frmSolver extends javax.swing.JFrame {
         if("-1".equals(beta)) beta="-";
         if("1".equals(alpha2)) alpha2="";
         if("-1".equals(alpha2)) alpha2="-";
-        
-        //System.out.println(alpha2);
-       
         
         String y1,y2,yc;
         
@@ -308,6 +382,40 @@ public class frmSolver extends javax.swing.JFrame {
         yc="Y_c = C_1"+y1+" + C_2"+y2;
         
         return yc;
+    }
+    
+    // ============= GETTERS PARA ACCESO A OBJETOS AGREGADOS =============
+    
+    /**
+     * Obtiene la ecuación actual agregada
+     * @return objeto ecCuadraticas agregado
+     */
+    public ecCuadraticas getEcuacionActual() {
+        return this.ecuacionActual;
+    }
+    
+    /**
+     * Obtiene las raíces actuales agregadas
+     * @return objeto Pair<Complex, Complex> con las raíces
+     */
+    public Pair<Complex, Complex> getRaicesActuales() {
+        return this.raicesActuales;
+    }
+    
+    /**
+     * Obtiene la primera raíz agregada
+     * @return objeto Complex con la primera raíz
+     */
+    public Complex getRaizCompleja1() {
+        return this.raizCompleja1;
+    }
+    
+    /**
+     * Obtiene la segunda raíz agregada
+     * @return objeto Complex con la segunda raíz
+     */
+    public Complex getRaizCompleja2() {
+        return this.raizCompleja2;
     }
     
     /**

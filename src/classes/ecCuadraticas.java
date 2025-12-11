@@ -14,10 +14,21 @@ public class ecCuadraticas {
     private int b;
     private int c;
     
-    public ecCuadraticas(int a,int b, int c){
-        this.a=a;
-        this.b=b;
-        this.c=c;
+    // Constructor original
+    public ecCuadraticas(int a, int b, int c){
+        this.a = a;
+        this.b = b;
+        this.c = c;
+    }
+    
+    // SOBRECARGA 1: Constructor sin parámetros
+    public ecCuadraticas() {
+        this(1, 0, 0); // valores por defecto
+    }
+    
+    // SOBRECARGA 2: Constructor con solo dos parámetros (para ecuaciones de primer orden)
+    public ecCuadraticas(int b, int c) {
+        this(0, b, c);
     }
     
     public int getA(){
@@ -48,7 +59,9 @@ public class ecCuadraticas {
         return b*b -4*a*c;
     }
     
+    // SOBRECARGA: getRoots() - versión simplificada
     public Pair<Complex, Complex> getRoots() {
+        // versión original completa
         // p = -b / (2a)
         // q = sqrt(b^2 - 4ac) / (2a)
         Complex r1 = new Complex(), r2 = new Complex();
@@ -57,7 +70,7 @@ public class ecCuadraticas {
         int a2 = 2 * a;
 
         // ----------- PARTE P ( -b / 2a ) -----------
-        int gcdP = gcd(-b, a2);
+        int gcdP = mathUtils.gcd(-b, a2);
         int pNum = -b / gcdP;
         int pDen = a2 / gcdP;
 
@@ -75,7 +88,7 @@ public class ecCuadraticas {
         }
 
         // ----------- FACTORIZACIÓN DEL DISCRIMINANTE -----------
-        Map<Integer, Integer> discFactors = PrimeFactors.getPrimeFactorization(Math.abs(D));
+        Map<Integer, Integer> discFactors = mathUtils.getPrimeFactorization(Math.abs(D));
 
         int dsqrt = 1;  // parte que queda dentro de la raíz
         int dcoef = 1;  // coeficiente que sale de la raíz
@@ -94,7 +107,7 @@ public class ecCuadraticas {
         }
 
         // ----------- PARTE Q ( dcoef*sqrt(dsqrt) / 2a ) -----------
-        int gcdQ = gcd(dcoef, a2);
+        int gcdQ = mathUtils.gcd(dcoef, a2);
         int qNum = dcoef / gcdQ;
         int qDen = a2 / gcdQ;
 
@@ -107,13 +120,13 @@ public class ecCuadraticas {
                 // r1 = p + q
                 int num1 = pNum * qDen + qNum * pDen;
                 int den1 = pDen * qDen;
-                int g1 = gcd(num1, den1);
+                int g1 = mathUtils.gcd(num1, den1);
                 num1 /= g1; den1 /= g1;
 
                 // r2 = p - q
                 int num2 = pNum * qDen - qNum * pDen;
                 int den2 = pDen * qDen;
-                int g2 = gcd(num2, den2);
+                int g2 = mathUtils.gcd(num2, den2);
                 num2 /= g2; den2 /= g2;
 
                 // r1
@@ -193,20 +206,8 @@ public class ecCuadraticas {
 
         return new Pair<>(r1, r2);
     }
-
+     
     
-    
-    public static int gcd(int a, int b) {
-        a = Math.abs(a);
-        b = Math.abs(b);
-
-        while (b != 0) {
-            int temp = b;
-            b = a % b;
-            a = temp;
-        }
-        return a;
-    }
 
     
 }
