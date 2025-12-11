@@ -27,6 +27,12 @@ public class Pair<A, B> {
         this.second = null;
     }
     
+    // Constructor sin parámetros (inicializa en null)
+    public Pair() {
+        this.first = null;
+        this.second = null;
+    }
+    
     public A getFirst() {
         return this.first;
     }

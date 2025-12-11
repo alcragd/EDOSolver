@@ -1,0 +1,303 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam arrowColor #000000
+skinparam classBorderColor #000000
+
+'==============================
+' INTERFACE OBJECT (Java)
+'==============================
+interface Object {
+  + equals(Object): boolean
+  + hashCode(): int
+  + toString(): String
+}
+
+'==============================
+' CLASS ecCuadraticas
+'==============================
+class ecCuadraticas {
+  - a: int
+  - b: int
+  - c: int
+
+  + ecCuadraticas()
+  + ecCuadraticas(a: int, b: int, c: int)
+  + ecCuadraticas(b: int, c: int)
+
+  + getA(): int
+  + getB(): int
+  + getC(): int
+  + setA(int)
+  + setB(int)
+  + setC(int)
+  + discriminante(): int
+  + getRoots(): Pair<Complex, Complex>
+  + getRoots(simplify: boolean): Pair<Complex, Complex>
+
+  + equals(Object): boolean
+  + hashCode(): int
+  + toString(): String
+
+  - frac(int, int): String
+  - imagPart(...): String
+  
+  {static} + gcd(int, int): int
+}
+
+'==============================
+' CLASS Complex
+'==============================
+class Complex {
+  - alpha: String
+  - beta: String
+  {static} - instanceCount: int
+  {static} - DEFAULT_VALUE: String
+
+  + Complex()
+  + Complex(alpha: String, beta: String)
+  + Complex(alpha: String)
+
+  + getAlpha(): String
+  + getBeta(): String
+  + setAlpha(String)
+  + setAlpha(int)
+  + setBeta(String)
+  + setBeta(int)
+
+  {static} + createReal(String): Complex
+  {static} + createReal(int): Complex
+  {static} + createImaginary(String): Complex
+  {static} + createImaginary(int): Complex
+
+  {static} + getInstanceCount(): int
+  + equals(Object): boolean
+  + hashCode(): int
+  + toString(): String
+}
+
+'==============================
+' CLASS Pair<A,B>
+'==============================
+class Pair <A, B> {
+  - first: A
+  - second: B
+
+  + Pair(first: A, second: B)
+  + Pair(first: A)
+  + Pair()
+  
+  + getFirst(): A
+  + getSecond(): B
+  + setFirst(A)
+  + setSecond(B)
+  + toString(): String
+  + toString(detailed: boolean): String
+  + equals(Object): boolean
+  + hashCode(): int
+}
+
+'==============================
+' CLASS HistorialEcuaciones
+'==============================
+class HistorialEcuaciones {
+  - historial: ArrayList<Registro>
+  - maxSize: int
+  {static} - MAX_HISTORIAL: int
+
+  + HistorialEcuaciones()
+  + HistorialEcuaciones(maxHistorial: int)
+  + HistorialEcuaciones(eq: ecCuadraticas, raices: Pair, solucion: String)
+
+  + agregarRegistro(ecCuadraticas, Pair<Complex,Complex>, String)
+  + obtenerHistorial(): ArrayList<Registro>
+  + obtenerRegistro(indice: int): Registro
+  + obtenerTamaño(): int
+  + buscar(valor: String): ArrayList<Registro>
+  + limpiar()
+  + eliminarRegistro(indice: int): boolean
+  + obtenerHistorialFormateado(): String
+}
+
+'==============================
+' INNER CLASS Registro (HistorialEcuaciones)
+'==============================
+class Registro {
+  - ecuacion: ecCuadraticas
+  - raices: Pair<Complex, Complex>
+  - solucion: String
+  - fecha: LocalDateTime
+
+  + Registro(ecCuadraticas, Pair<Complex,Complex>, String)
+  + getEcuacion(): ecCuadraticas
+  + getRaices(): Pair<Complex, Complex>
+  + getSolucion(): String
+  + getFecha(): LocalDateTime
+  + toString(): String
+}
+
+'==============================
+' GUI frmSolver
+'==============================
+class frmSolver {
+  - ecuacionActual: ecCuadraticas
+  - raicesActuales: Pair<Complex, Complex>
+  - raizCompleja1: Complex
+  - raizCompleja2: Complex
+  - historialEcuaciones: HistorialEcuaciones
+
+  - txtA: JTextField
+  - txtB: JTextField
+  - txtC: JTextField
+
+  - btnSolve: JButton
+  - btnSteps: JButton
+  - btnHistorial: JButton
+  - btnLimpiarHistorial: JButton
+
+  - panSolution: JPanel
+  - lblSol: JLabel
+  - lblSolTitle: JLabel
+
+  {static} - logger: Logger
+
+  + frmSolver()
+  + getEcuacionActual(): ecCuadraticas
+  + getRaicesActuales(): Pair<Complex, Complex>
+  + getRaizCompleja1(): Complex
+  + getRaizCompleja2(): Complex
+  + getHistorialEcuaciones(): HistorialEcuaciones
+
+  + btnSolveActionPerformed(ActionEvent)
+  + btnStepsActionPerformed(ActionEvent)
+  + btnHistorialActionPerformed(ActionEvent)
+  + btnLimpiarHistorialActionPerformed(ActionEvent)
+
+  - buildSteps(): StepData
+  - secondOrderEc(ecCuadraticas): String
+  - secondOrderEc(int,int,int): String
+  - firstOrderEc(ecCuadraticas): String
+  - firstOrderEc(int, int): String
+  - formatCoefficient(int, boolean): String
+  - formatRootLatex(Complex): String
+  - buildY1Y2Latex(...): String[]
+  - buildExpLatex(String): String
+  - formatInnerExp(String): String
+  - buildY1FirstOrderLatex(int, int): String
+  - formatMultiplication(String): String
+}
+
+'==============================
+' CLASS frmSteps
+'==============================
+class frmSteps {
+  - mainPanel: JPanel
+
+  + frmSteps(p1: String, p2: String, p3: String, p4: String)
+  - createStepPanel(latexText: String): JPanel
+  - latexLabel(tex: String): JLabel
+}
+
+'==============================
+' CLASS frmHistorial
+'==============================
+class frmHistorial {
+  - modeloLista: DefaultListModel<String>
+  - listRegistros: JList<String>
+  - historial: HistorialEcuaciones
+
+  + frmHistorial(hist: HistorialEcuaciones)
+  - recargarLista()
+}
+
+'==============================
+' CLASS mathUtils
+'==============================
+class mathUtils {
+  {static} + gcd(int, int): int
+  {static} + getPrimeFactorization(int): Map<Integer, Integer>
+}
+
+'==============================
+' INNER CLASS StepData (frmSolver)
+'==============================
+class StepData {
+  + step1: String
+  + step2: String
+  + step3: String
+  + step4: String
+}
+
+'==============================
+' RELATIONSHIPS
+'==============================
+
+' Herencia de Object
+Object <|-- ecCuadraticas
+Object <|-- Complex
+Object <|-- Pair
+
+' Agregación en frmSolver
+frmSolver o-- ecCuadraticas : agrega
+frmSolver o-- Pair : agrega
+frmSolver o-- Complex : agrega
+frmSolver o-- HistorialEcuaciones : agrega
+
+' Uso y dependencias
+ecCuadraticas ..> Pair : usa/retorna
+ecCuadraticas ..> Complex : usa
+ecCuadraticas ..> mathUtils : usa
+
+frmSolver ..> ecCuadraticas : usa
+frmSolver ..> Pair : usa
+frmSolver ..> Complex : usa
+frmSolver ..> mathUtils : usa
+frmSolver ..> frmSteps : crea
+frmSolver ..> frmHistorial : crea
+
+' Composición (inner class)
+frmSolver *-- StepData : contiene
+HistorialEcuaciones *-- Registro : contiene
+
+' ArrayList en HistorialEcuaciones
+HistorialEcuaciones o-- "0..*" Registro : almacena en ArrayList
+
+' Registro agrega objetos
+Registro o-- ecCuadraticas : agrega
+Registro o-- Pair : agrega
+
+' frmHistorial usa HistorialEcuaciones
+frmHistorial ..> HistorialEcuaciones : usa
+
+' Pair genérico puede contener Complex
+Pair ..> Complex : puede contener
+
+note right of HistorialEcuaciones
+  Usa ArrayList<Registro> para
+  almacenar dinámicamente el
+  historial de ecuaciones
+end note
+
+note right of frmSolver
+  Demuestra:
+  - Agregación explícita
+  - Uso de ArrayList
+  - Sobrecarga de métodos
+  - Uso de static
+end note
+
+note right of Complex
+  Demuestra:
+  - Sobrecarga de constructores
+  - Métodos static factory
+  - Variable static instanceCount
+end note
+
+note right of Pair
+  Clase genérica que
+  demuestra agregación
+  Puede contener cualquier
+  tipo de objetos
+end note
+
+@enduml

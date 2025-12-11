@@ -10,10 +10,13 @@ import classes.ecCuadraticas;
 import classes.Complex;
 import classes.Pair;
 import classes.mathUtils;
+import classes.HistorialEcuaciones;
+import java.util.ArrayList;
 
 /**
  * Clase que representa la interfaz gráfica del solucionador de ecuaciones diferenciales
  * Demuestra AGREGACIÓN: esta clase contiene objetos de tipo ecCuadraticas, Complex y Pair
+ * Demuestra USO DE ArrayList: mantiene historial de ecuaciones resueltas
  * 
  * @author angel
  */
@@ -27,10 +30,13 @@ public class frmSolver extends javax.swing.JFrame {
     private Pair<Complex, Complex> raicesActuales;  // Agregación de Pair<Complex, Complex>
     private Complex raizCompleja1;               // Agregación de Complex
     private Complex raizCompleja2;               // Agregación de Complex
+    
+    // ============= ARRAYLIST PARA HISTORIAL =============
+    private HistorialEcuaciones historialEcuaciones;
 
     /**
      * Creates new form frmSolver
-     * Inicializa los objetos agregados
+     * Inicializa los objetos agregados y el historial
      */
     public frmSolver() {
         initComponents();
@@ -40,6 +46,9 @@ public class frmSolver extends javax.swing.JFrame {
         this.raicesActuales = null;                  // Se inicializa cuando se resuelve
         this.raizCompleja1 = new Complex();          // Objeto agregado
         this.raizCompleja2 = new Complex();          // Objeto agregado
+        
+        // ============= INICIALIZAR ARRAYLIST =============
+        this.historialEcuaciones = new HistorialEcuaciones();
         
         panSolution.setEnabled(false);
         panSolution.setVisible(false);
@@ -78,6 +87,8 @@ public class frmSolver extends javax.swing.JFrame {
         lblSolTitle = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
+        btnHistorial = new javax.swing.JButton();
+        btnLimpiarHistorial = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
@@ -129,6 +140,14 @@ public class frmSolver extends javax.swing.JFrame {
         jLabel2.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         jLabel2.setText("Solucionador de Ec. Diff. Lineal Homogénea de Segundo Orden");
 
+        btnHistorial.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        btnHistorial.setText("Historial");
+        btnHistorial.addActionListener(evt -> btnHistorialActionPerformed(evt));
+
+        btnLimpiarHistorial.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        btnLimpiarHistorial.setText("Limpiar Historial");
+        btnLimpiarHistorial.addActionListener(evt -> btnLimpiarHistorialActionPerformed(evt));
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -155,7 +174,11 @@ public class frmSolver extends javax.swing.JFrame {
                         .addGap(26, 26, 26)
                         .addComponent(btnSolve)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(btnSteps))
+                        .addComponent(btnSteps)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnHistorial)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnLimpiarHistorial))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(77, 77, 77)
                         .addComponent(jLabel2))
@@ -185,7 +208,9 @@ public class frmSolver extends javax.swing.JFrame {
                         .addGap(39, 39, 39)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(btnSolve)
-                            .addComponent(btnSteps))))
+                            .addComponent(btnSteps)
+                            .addComponent(btnHistorial)
+                            .addComponent(btnLimpiarHistorial))))
                 .addGap(18, 18, 18)
                 .addComponent(panSolution, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(38, Short.MAX_VALUE))
@@ -234,6 +259,11 @@ public class frmSolver extends javax.swing.JFrame {
             panSolution.setEnabled(true);
             panSolution.setVisible(true);
             lblSol.setIcon(iconYc);
+            
+            // ============= AGREGAR AL HISTORIAL =============
+            if (this.raicesActuales != null) {
+                historialEcuaciones.agregarRegistro(this.ecuacionActual, this.raicesActuales, yc);
+            }
             
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Algún campo es invalido, solo puedes ingresar numeros enteros");
@@ -733,8 +763,10 @@ private String buildRealExp(String alpha) {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnLimpiarHistorial;
     private javax.swing.JButton btnSolve;
     private javax.swing.JButton btnSteps;
+    private javax.swing.JButton btnHistorial;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel lblD2y;
@@ -747,4 +779,20 @@ private String buildRealExp(String alpha) {
     private javax.swing.JTextField txtB;
     private javax.swing.JTextField txtC;
     // End of variables declaration//GEN-END:variables
+
+    private void btnHistorialActionPerformed(java.awt.event.ActionEvent evt) {
+        frmHistorial dlg = new frmHistorial(historialEcuaciones);
+        dlg.setVisible(true);
+    }
+
+    private void btnLimpiarHistorialActionPerformed(java.awt.event.ActionEvent evt) {
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "¿Deseas limpiar todo el historial?",
+                "Confirmar",
+                JOptionPane.YES_NO_OPTION);
+        if (confirm == JOptionPane.YES_OPTION) {
+            historialEcuaciones.limpiar();
+            JOptionPane.showMessageDialog(this, "Historial limpiado correctamente.");
+        }
+    }
 }
