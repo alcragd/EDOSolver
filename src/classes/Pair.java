@@ -43,7 +43,30 @@ public class Pair<A, B> {
         this.second = second;
     }
     
-    // SOBRECARGA: Método toString con parámetro
+    /**
+     * Compara dos Pairs por sus elementos
+     * @param obj objeto a comparar
+     * @return true si ambos first y second son iguales
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        
+        Pair<?, ?> other = (Pair<?, ?>) obj;
+        
+        boolean firstEqual = (first == null) ? (other.first == null) : first.equals(other.first);
+        boolean secondEqual = (second == null) ? (other.second == null) : second.equals(other.second);
+        
+        return firstEqual && secondEqual;
+    }
+    
+    
+    /**
+     * Método toString sobrecargado con parámetro
+     * @param detailed si true muestra formato detallado
+     * @return representación en String
+     */
     public String toString(boolean detailed) {
         if (detailed) {
             return "Pair{" +

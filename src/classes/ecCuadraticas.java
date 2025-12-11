@@ -6,7 +6,7 @@ package classes;
 import java.util.Map;
 
 /**
- *
+ * Clase que representa una ecuación cuadrática
  * @author Coyol Moreno Angel Zoe
  */
 public class ecCuadraticas {
@@ -234,6 +234,27 @@ public class ecCuadraticas {
             r2.setBeta("-" + imagStr);
 
         return new Pair<>(r1, r2);
+    }
+
+    /**
+     * Compara dos ecuaciones cuadráticas por sus coeficientes
+     * @param obj objeto a comparar
+     * @return true si tienen los mismos coeficientes a, b, c
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        
+        ecCuadraticas other = (ecCuadraticas) obj;
+        return a == other.a && b == other.b && c == other.c;
+    }
+    
+    
+    
+    @Override
+    public String toString() {
+        return a + "m^2 + " + b + "m + " + c + " = 0";
     }
 }
 

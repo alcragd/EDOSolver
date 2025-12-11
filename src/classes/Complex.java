@@ -6,7 +6,7 @@
 package classes;
 
 /**
- *
+ * Clase que representa un número complejo
  * @author Coyol Moreno Angel Zoe
  */
 public class Complex {
@@ -95,6 +95,26 @@ public class Complex {
     public static int getInstanceCount() {
         return instanceCount;
     }
+    
+    /**
+     * Compara dos números complejos por valor
+     * @param obj objeto a comparar
+     * @return true si tienen igual parte real e imaginaria
+     */
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        
+        Complex other = (Complex) obj;
+        return alpha.equals(other.alpha) && beta.equals(other.beta);
+    }
+    
+    /**
+     * Calcula el código hash basado en alpha y beta
+     * @return hash code del complejo
+     */
+   
     
     @Override
     public String toString(){
