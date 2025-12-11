@@ -59,7 +59,52 @@ public class ecCuadraticas {
         return b*b -4*a*c;
     }
     
-    // SOBRECARGA: getRoots() - versión simplificada
+    private String frac(int num, int den) {
+    if (den == 1) return "" + num;
+    return "\\frac{" + num + "}{" + den + "}";
+    }
+    
+    private String imagPart(int qNum, int qDen, int Im) {
+
+    // Determinar si hay radical
+    String radical = (Im == 1) ? "" : "\\sqrt{" + Im + "}";
+
+    // Coeficiente sin signo
+    int n = Math.abs(qNum);
+    int d = qDen;
+
+    String coef;
+
+    if (n == 1 && d == 1) {
+        // 1 → se omite
+        coef = "";
+    } 
+    else if (d == 1) {
+        // n / 1  → n
+        coef = "" + n;
+    } 
+    else if (n == 1) {
+        // 1/d → 1/d
+        coef = "\\frac{1}{" + d + "}";
+    } 
+    else {
+        // n/d
+        coef = "\\frac{" + n + "}{" + d + "}";
+    }
+
+    // Unir coeficiente + radical
+    String term = coef + radical;
+
+    // Si todo se canceló (ej: coef="" y radical="") → coef era 1, Im=1
+    if (term.equals("")) term = "1";
+
+
+    // Aplicar signo
+    if (qNum < 0) return "-" + term;
+    return term;
+    }
+
+    
     public Pair<Complex, Complex> getRoots() {
         // versión original completa
         // p = -b / (2a)
@@ -173,43 +218,23 @@ public class ecCuadraticas {
 
         // -------------------- D < 0 (raíces complejas) ------------------------
         int Im = dsqrt; // parte imaginaria dentro de sqrt
+        String pStr = frac(pNum, pDen);
+        String imagStr = imagPart(qNum, qDen, Im);
 
-        // parte real p
-        String pStr;
-        if (pNum == 0)               pStr = "0";
-        else if (pDen == 1)          pStr = pNum + "";
-        else                         pStr = "\\frac{" + pNum + "}{" + pDen + "}";
-
-        // parte imaginaria q
-        String qStr;
-        if(qDen==1 && qNum==1 && Im==1)
-            qStr="";
-        else if(qDen==1 && qNum==1)
-            qStr="\\sqrt{"+Im+"}";
-        else if(qDen==1 && Im==1)
-            qStr=""+qNum;
-        else if(qNum==1 && Im==1)
-            qStr="\\frac{1}{"+qDen+"}";
-        else if(qDen==1)
-            qStr=qNum+"\\sqrt{"+Im+"}";
-        else if(qNum==1)
-            qStr="\\frac{\\sqrt{"+Im+"}}{"+qDen+"}";
-        else if(Im==1)
-            qStr="\\frac{"+qNum+"}{"+qDen+"}";
-        else
-            qStr="\\frac{"+qNum+"\\sqrt{"+Im+"}}{"+qDen+"}";
-
+        // r1 = p + qi
         r1.setAlpha(pStr);
-        r1.setBeta(qStr);
-        
-        r2.setAlpha("-"+qStr);
+        r1.setBeta(imagStr);
+
+        // r2 = p - qi   (solo cambiar signo)
+        r2.setAlpha(pStr);
+
+        if(imagStr.startsWith("-"))
+            r2.setBeta(imagStr.substring(1));
+        else
+            r2.setBeta("-" + imagStr);
 
         return new Pair<>(r1, r2);
     }
-     
-    
-
-    
 }
 
 

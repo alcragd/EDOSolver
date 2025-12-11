@@ -72,6 +72,7 @@ public class frmSolver extends javax.swing.JFrame {
         lblDy = new javax.swing.JLabel();
         lblY = new javax.swing.JLabel();
         btnSolve = new javax.swing.JButton();
+        btnSteps = new javax.swing.JButton();
         panSolution = new javax.swing.JPanel();
         lblSol = new javax.swing.JLabel();
         lblSolTitle = new javax.swing.JLabel();
@@ -86,11 +87,6 @@ public class frmSolver extends javax.swing.JFrame {
         txtA.setHorizontalAlignment(javax.swing.JTextField.CENTER);
 
         txtC.setHorizontalAlignment(javax.swing.JTextField.CENTER);
-        txtC.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtCActionPerformed(evt);
-            }
-        });
 
         btnSolve.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         btnSolve.setText("Solve");
@@ -99,6 +95,10 @@ public class frmSolver extends javax.swing.JFrame {
                 btnSolveActionPerformed(evt);
             }
         });
+
+        btnSteps.setFont(new java.awt.Font("Segoe UI", 0, 14));
+        btnSteps.setText("Pasos");
+        btnSteps.addActionListener(evt -> btnStepsActionPerformed(evt));
 
         panSolution.setEnabled(false);
 
@@ -153,7 +153,9 @@ public class frmSolver extends javax.swing.JFrame {
                         .addGap(6, 6, 6)
                         .addComponent(lblY, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(26, 26, 26)
-                        .addComponent(btnSolve))
+                        .addComponent(btnSolve)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnSteps))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(77, 77, 77)
                         .addComponent(jLabel2))
@@ -181,7 +183,9 @@ public class frmSolver extends javax.swing.JFrame {
                             .addComponent(lblY, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(39, 39, 39)
-                        .addComponent(btnSolve)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(btnSolve)
+                            .addComponent(btnSteps))))
                 .addGap(18, 18, 18)
                 .addComponent(panSolution, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(38, Short.MAX_VALUE))
@@ -191,9 +195,6 @@ public class frmSolver extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void txtCActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtCActionPerformed
-        
-    }//GEN-LAST:event_txtCActionPerformed
 
     private void btnSolveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSolveActionPerformed
         String sa = txtA.getText().trim();
@@ -239,6 +240,291 @@ public class frmSolver extends javax.swing.JFrame {
         }
         
     }//GEN-LAST:event_btnSolveActionPerformed
+
+    private void btnStepsActionPerformed(java.awt.event.ActionEvent evt) {
+        try {
+            StepData steps = buildSteps();
+            frmSteps dlg = new frmSteps(steps.step1, steps.step2, steps.step3, steps.step4);
+            dlg.setVisible(true);
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage());
+        }
+    }
+
+    // Contenedor simple para los textos de pasos
+    private static class StepData {
+        String step1, step2, step3, step4;
+    }
+
+    // Construye los pasos a partir de los coeficientes en pantalla
+    private StepData buildSteps() {
+    String sa = txtA.getText().trim();
+    String sb = txtB.getText().trim();
+    String sc = txtC.getText().trim();
+    if (sa.isEmpty() || sb.isEmpty() || sc.isEmpty()) {
+        throw new IllegalArgumentException("Por favor llena todos los campos con números.");
+    }
+
+    int a, b, c;
+    try {
+        a = Integer.parseInt(sa);
+        b = Integer.parseInt(sb);
+        c = Integer.parseInt(sc);
+    } catch (NumberFormatException e) {
+        throw new IllegalArgumentException("Algún campo es inválido, solo números enteros.");
+    }
+
+    if (a == 0 && b == 0) {
+        throw new IllegalArgumentException("a y b no pueden ser cero simultáneamente.");
+    }
+
+    // Calcula raíces con ecCuadraticas
+    ecCuadraticas ec = (a != 0) ? new ecCuadraticas(a, b, c) : new ecCuadraticas(b, c);
+    Pair<Complex, Complex> roots = (a != 0) ? ec.getRoots() : null;
+
+    StepData sd = new StepData();
+
+    // ===========================================================
+    // 1) Ecuación característica
+    // ===========================================================
+    if (a != 0) {
+        sd.step1 = "\\text{1) Ecuación característica:}"
+                + formatCoefficient(a, true, false) + "m^2"
+                + formatCoefficient(b, false, false) + "m"
+                + formatCoefficient(c, false, true)
+                + " = 0";
+    } else {
+        sd.step1 = "\\text{1) Ecuación de primer orden:}"
+                + formatCoefficient(b, true, false) + "m"
+                + formatCoefficient(c, false, true)
+                + " = 0";
+    }
+
+    // ===========================================================
+    // 2) Soluciones m1, m2 (solo si es de 2º orden)
+    // ===========================================================
+    if (a != 0 && roots != null) {
+        String m1 = formatRootLatex(roots.getFirst());
+        String m2 = formatRootLatex(roots.getSecond());
+        sd.step2 = "\\text{2) Soluciones de la característica:}"
+                + "m_1 = " + m1 + ",\\quad m_2 = " + m2;
+    } else {
+        int gcd = mathUtils.gcd(b, c);
+        int bSim = b / gcd;
+        int cSim = -c / gcd;
+
+        if (bSim < 0) { bSim = -bSim; cSim = -cSim; }
+
+        String mValue;
+        if (bSim == 1) {
+            mValue = cSim + "";
+        } else {
+            mValue = "\\frac{" + cSim + "}{" + bSim + "}";
+        }
+        sd.step2 = "\\text{2) Solución de la característica:}m = " + mValue;
+    }
+
+    // ===========================================================
+    // 3) y1, y2 (o solo y1 si es 1er orden)
+    // ===========================================================
+    String[] ys = (a != 0)
+            ? buildY1Y2Latex(ec, roots)
+            : new String[]{buildY1FirstOrderLatex(b, c), ""};
+
+    if (a != 0) {
+        sd.step3 = "\\text{3) Soluciones de la homogénea:}"
+                + "y_1 = " + ys[0] + "y_2 = " + ys[1];
+    } else {
+        sd.step3 = "\\text{3) Solución de la homogénea:}y_1 = " + ys[0];
+    }
+
+    // ===========================================================
+    // 4) Solución general
+    // ===========================================================
+    if (a != 0) {
+        sd.step4 = "\\text{4) Solución general:}"
+                + "y_c = C_1" + formatMultiplication(ys[0])
+                + " + C_2" + formatMultiplication(ys[1]);
+    } else {
+        sd.step4 = "\\text{4) Solución general:}"
+                + "y_c = C" + formatMultiplication(ys[0]);
+    }
+
+    return sd;
+}
+
+
+    /**
+     * Formatea coeficientes para LaTeX (simplifica 1, -1, 0)
+     * @param coef coeficiente numérico
+     * @param isFirst true si es el primer término
+     * @return String formateado para LaTeX
+     */
+    /**
+ * Formatea coeficientes para LaTeX asegurando signos y espacios correctos.
+ * Siempre devuelve algo como:
+ *   "" , "+ ", "- ", "+ k ", "- k "
+ */
+private String formatCoefficient(int coef, boolean isFirst, boolean isLast) {
+
+    // coef = 0 → evitar concatenación tipo "m^2m"
+    if (coef == 0) {
+        return isFirst ? "" : " ";
+    }
+
+    // Primer término (a·m^2)
+    if (isFirst) {
+        if (coef == 1)  return "";
+        if (coef == -1) return "-";
+        return coef + "";
+    }
+
+    // Último término (c)
+    if (isLast) {
+        if (coef > 0)  return " + " + coef;
+        return " - " + Math.abs(coef);
+    }
+
+    // Término intermedio (b·m)
+    if (coef == 1)  return " + ";
+    if (coef == -1) return " - ";
+    if (coef > 0)   return " + " + coef;
+    return " - " + Math.abs(coef);
+}
+
+
+
+    /**
+     * Formatea una raíz compleja para LaTeX (simplifica 0, 1, -1)
+     */
+    private String formatRootLatex(Complex c) {
+        String a = c.getAlpha();
+        String b = c.getBeta();
+        
+        // Solo parte real
+        if ("0".equals(b) || "".equals(b)) {
+            if ("0".equals(a)) return "0";
+            return a;
+        }
+        
+        // Solo parte imaginaria
+        if ("0".equals(a) || "".equals(a)) {
+            if ("1".equals(b)) return "i";
+            if ("-1".equals(b)) return "-i";
+            return b + "i";
+        }
+        
+        // Ambas partes
+        String imagPart;
+        if ("1".equals(b)) {
+            imagPart = "i";
+        } else if ("-1".equals(b)) {
+            imagPart = "i";
+            return a + " - " + imagPart;
+        } else {
+            imagPart = b + "i";
+        }
+        
+        if (b.startsWith("-")) {
+            return a + " - " + imagPart.substring(1);
+        } else {
+            return a + " + " + imagPart;
+        }
+    }
+
+    /**
+     * Construye y1, y2 en formato LaTeX para segundo orden
+     */
+    private String[] buildY1Y2Latex(ecCuadraticas ec, Pair<Complex, Complex> roots) {
+        int disc = ec.discriminante();
+        Complex r1 = roots.getFirst();
+        Complex r2 = roots.getSecond();
+        String alpha = r1.getAlpha();
+        String beta = r1.getBeta();
+        String alpha2 = r2.getAlpha();
+
+        if (disc > 0) {
+            String y1 = ("0".equals(alpha)) ? "1" : buildExpLatex(alpha);
+            String y2 = ("0".equals(alpha2)) ? "1" : buildExpLatex(alpha2);
+            return new String[]{y1, y2};
+        } else if (disc == 0) {
+            String base = ("0".equals(alpha)) ? "1" : buildExpLatex(alpha);
+            String y1 = base;
+            String y2 = ("1".equals(base)) ? "x" : "x" + base;
+            return new String[]{y1, y2};
+        } else { // disc < 0
+            String cosine = "\\cos(" + formatInnerExp(beta) + "x)";
+            String sine = "\\sin(" + formatInnerExp(beta) + "x)";
+            
+            if ("0".equals(alpha)) {
+                return new String[]{cosine, sine};
+            } else {
+                String expPart = buildExpLatex(alpha);
+                return new String[]{expPart + cosine, expPart + sine};
+            }
+        }
+    }
+
+    /**
+     * Construye e^{...x} simplificando 1, -1, 0
+     */
+    private String buildExpLatex(String coef) {
+        if ("0".equals(coef)) return "1";
+        if ("1".equals(coef)) return "e^{x}";
+        if ("-1".equals(coef)) return "e^{-x}";
+        
+        // Si es fracción (contiene \frac)
+        if (coef.contains("\\frac")) {
+            return "e^{" + coef + "x}";
+        }
+        
+        return "e^{" + coef + "x}";
+    }
+
+    /**
+     * Formatea el exponente interno (para cos/sin)
+     */
+    private String formatInnerExp(String coef) {
+        if ("1".equals(coef)) return "";
+        if ("-1".equals(coef)) return "-";
+        return coef;
+    }
+
+    /**
+     * y1 en formato LaTeX para primer orden
+     */
+    private String buildY1FirstOrderLatex(int b, int c) {
+        int gcd = mathUtils.gcd(b, c);
+        b /= gcd;
+        c /= gcd;
+        c = -c;
+        if (b < 0) { b = -b; c = -c; }
+        
+        String coef;
+        if (b == 1 && c == 1) {
+            coef = "1";
+        } else if (c == 1) {
+            coef = "\\frac{1}{" + b + "}";
+        } else if (b == 1) {
+            coef = c + "";
+        } else {
+            coef = "\\frac{" + c + "}{" + b + "}";
+        }
+        
+        if ("0".equals(coef)) return "1";
+        if ("1".equals(coef)) return "e^{x}";
+        if ("-1".equals(coef)) return "e^{-x}";
+        
+        return "e^{" + coef + "x}";
+    }
+
+    /**
+     * Formatea la multiplicación con constantes (evita C1·1)
+     */
+    private String formatMultiplication(String term) {
+        if ("1".equals(term)) return "";
+        return term;
+    }
 
     // ============= MÉTODOS CON AGREGACIÓN EXPLÍCITA =============
     
@@ -310,79 +596,82 @@ public class frmSolver extends javax.swing.JFrame {
     }
 
     /**
-     * Resuelve ecuación diferencial de segundo orden
-     * Versión sobrecargada que recibe parámetros primitivos
-     * Demuestra AGREGACIÓN: crea y utiliza objetos Pair<Complex, Complex>
-     * 
-     * @param a coeficiente de y''
-     * @param b coeficiente de y'
-     * @param c coeficiente de y
-     * @return String con la solución en formato LaTeX
-     */
-    private String secondOrderEc(int a, int b, int c){
-        // AGREGACIÓN: Creamos objeto ecCuadraticas
-        ecCuadraticas ecCaracteristica = new ecCuadraticas(a, b, c);
-        
-        // AGREGACIÓN: Obtenemos objeto Pair<Complex, Complex> agregado
-        Pair<Complex, Complex> roots = ecCaracteristica.getRoots();
-        this.raicesActuales = roots;  // Almacenamos las raíces agregadas
-        
-        // AGREGACIÓN: Obtenemos objetos Complex agregados del Pair
-        this.raizCompleja1 = roots.getFirst();
-        this.raizCompleja2 = roots.getSecond();
-        
-        int disc = ecCaracteristica.discriminante();
-    
-        String alpha,beta,alpha2;
-        alpha = this.raizCompleja1.getAlpha(); 
-        beta = this.raizCompleja1.getBeta();
-        alpha2 = this.raizCompleja2.getAlpha(); 
-        
-        if("1".equals(alpha)) alpha="";
-        if("-1".equals(alpha)) alpha="-";
-        if("1".equals(beta)) beta="";
-        if("-1".equals(beta)) beta="-";
-        if("1".equals(alpha2)) alpha2="";
-        if("-1".equals(alpha2)) alpha2="-";
-        
-        String y1,y2,yc;
-        
-        if(disc>0){
-            if("0".equals(alpha))
-                y1="";
-            else
-                y1="e^{"+alpha+"x}";
-            if("0".equals(alpha2))
-                y2="";
-            else
-                y2="e^{"+alpha2+"x}";
+ * Resuelve ecuación diferencial de segundo orden.
+ * Versión sobrecargada que recibe parámetros primitivos.
+ * Demuestra AGREGACIÓN: crea y utiliza objetos Pair<Complex, Complex>
+ *
+ * @param a coeficiente de y''
+ * @param b coeficiente de y'
+ * @param c coeficiente de y
+ * @return String con la solución en formato LaTeX
+ */
+private String secondOrderEc(int a, int b, int c) {
+
+    ecCuadraticas ecCaracteristica = new ecCuadraticas(a, b, c);
+
+    Pair<Complex, Complex> roots = ecCaracteristica.getRoots();
+    this.raicesActuales = roots;
+    this.raizCompleja1 = roots.getFirst();
+    this.raizCompleja2 = roots.getSecond();
+
+    int disc = ecCaracteristica.discriminante();
+
+    // Extraemos partes reales e imaginarias
+    String alpha  = normalizeCoef(raizCompleja1.getAlpha());
+    String beta   = normalizeCoef(raizCompleja1.getBeta());
+    String alpha2 = normalizeCoef(raizCompleja2.getAlpha());
+
+    String y1, y2;
+
+    if (disc > 0) {  
+        // Raíces reales distintas
+        y1 = buildRealExp(alpha);
+        y2 = buildRealExp(alpha2);
+
+    } else if (disc == 0) {  
+        // Raíz real doble
+        if ("0".equals(alpha)) {
+            y1 = "";
+            y2 = "x";
+        } else {
+            y1 = "e^{" + alpha + "x}";
+            y2 = "x" + y1;
         }
-        else if (disc==0){
-            if("0".equals(alpha)){
-                y1="";
-                y2="x";
-            }
-            else {
-            y1="e^{"+alpha+"x}";
-            y2="x"+y1;
-            }
+
+    } else {  
+        // Raíces complejas
+        if ("0".equals(alpha)) {
+            y1 = "\\cos(" + beta + "x)";
+            y2 = "\\sin(" + beta + "x)";
+        } else {
+            y1 = "e^{" + alpha + "x}\\cos(" + beta + "x)";
+            y2 = "e^{" + alpha + "x}\\sin(" + beta + "x)";
         }
-        else { // disc < 0
-            
-            if("0".equals(alpha)){
-                y1="\\cos("+beta+"x)";
-                y2="\\sin("+beta+"x)";
-            }
-            else {
-                y1="e^{"+alpha+"x}\\cos("+beta+"x)";
-                y2="e^{"+alpha+"x}\\sin("+beta+"x)";
-            }
-        }
-        
-        yc="Y_c = C_1"+y1+" + C_2"+y2;
-        
-        return yc;
     }
+
+    return "Y_c = C_1" + y1 + " + C_2" + y2;
+}
+
+/* ----------------------------------------------------------
+   FUNCIONES AUXILIARES
+   ---------------------------------------------------------- */
+
+/** Normaliza coeficientes tipo "1", "-1", etc. */
+private String normalizeCoef(String v) {
+    if (v == null) return "0";
+    switch (v) {
+        case "1":  return "";
+        case "-1": return "-";
+        default:   return v;
+    }
+}
+
+/** Construye expresión e^{αx} pero omite si α=0 */
+private String buildRealExp(String alpha) {
+    return "0".equals(alpha) ? "" : "e^{" + alpha + "x}";
+}
+
+
     
     // ============= GETTERS PARA ACCESO A OBJETOS AGREGADOS =============
     
@@ -445,6 +734,7 @@ public class frmSolver extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnSolve;
+    private javax.swing.JButton btnSteps;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel lblD2y;
