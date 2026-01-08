@@ -6,8 +6,13 @@
             <file>file:/C:/Users/angel/Documents/NetBeansProjects/solverEDOsLinealesH/src/classes/ecCuadraticas.java</file>
             <file>file:/C:/Users/angel/Documents/NetBeansProjects/solverEDOsLinealesH/src/classes/Complex.java</file>
             <file>file:/C:/Users/angel/Documents/NetBeansProjects/solverEDOsLinealesH/src/classes/Pair.java</file>
-            <file>file:/C:/Users/angel/Documents/NetBeansProjects/solverEDOsLinealesH/src/classes/PrimeFactors.java</file>
+            <file>file:/C:/Users/angel/Documents/NetBeansProjects/solverEDOsLinealesH/src/classes/mathUtils.java</file>
             <file>file:/C:/Users/angel/Documents/NetBeansProjects/solverEDOsLinealesH/src/main/frmSolver.java</file>
+            <file>file:/C:/Users/angel/Documents/NetBeansProjects/solverEDOsLinealesH/src/classes/DifferentialEquation.java</file>
+            <file>file:/C:/Users/angel/Documents/NetBeansProjects/solverEDOsLinealesH/src/classes/FirstOrderLinearEquation.java</file>
+            <file>file:/C:/Users/angel/Documents/NetBeansProjects/solverEDOsLinealesH/src/classes/Solvable.java</file>
+            <file>file:/C:/Users/angel/Documents/NetBeansProjects/solverEDOsLinealesH/src/classes/SecondOrderLinearEquation.java</file>
+            <file>file:/C:/Users/angel/Documents/NetBeansProjects/solverEDOsLinealesH/src/classes/LinearEquation.java</file>
         </group>
     </open-files>
 </project-private>

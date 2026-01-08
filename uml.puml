@@ -1,17 +1,88 @@
-@startuml
+@startuml edosolver
 skinparam classAttributeIconSize 0
 skinparam shadowing false
 skinparam arrowColor #000000
 skinparam classBorderColor #000000
 
 '==============================
-' INTERFACE OBJECT (Java)
+' JERARQUÍA DE HERENCIA
 '==============================
-interface Object {
-  + equals(Object): boolean
-  + hashCode(): int
+
+'==============================
+' ABSTRACT CLASS DifferentialEquation
+'==============================
+abstract class DifferentialEquation {
+  + {abstract} order(): int
+  + {abstract} solveLatex(): String
   + toString(): String
 }
+
+'==============================
+' CLASS LinearEquation
+'==============================
+class LinearEquation extends DifferentialEquation {
+  # order: int
+  
+  + LinearEquation(order: int)
+  + order(): int
+  + solveLatex(): String
+  + toString(): String
+}
+
+'==============================
+' INTERFACE Solvable
+'==============================
+interface Solvable {
+  + toLatex(): String
+  + getRoots(): Pair<Complex, Complex>
+}
+
+'==============================
+' CLASS FirstOrderLinearEquation
+'==============================
+class FirstOrderLinearEquation extends LinearEquation {
+  - b: int
+  - c: int
+  
+  + FirstOrderLinearEquation(b: int, c: int)
+  + solveLatex(): String
+  + getRoots(): Pair<Complex, Complex>
+  + toLatex(): String
+  + getB(): int
+  + getC(): int
+  + toString(): String
+}
+
+'==============================
+' CLASS SecondOrderLinearEquation
+'==============================
+class SecondOrderLinearEquation extends LinearEquation {
+  - a: int
+  - b: int
+  - c: int
+  - ec: ecCuadraticas
+  
+  + SecondOrderLinearEquation(a: int, b: int, c: int)
+  + solveLatex(): String
+  + getRoots(): Pair<Complex, Complex>
+  + getUnderlyingEc(): ecCuadraticas
+  + toLatex(): String
+  + toString(): String
+  - normalizeCoef(String): String
+  - buildRealExp(String): String
+}
+
+'==============================
+' EXCEPTION InvalidEquationException
+'==============================
+class InvalidEquationException extends Exception {
+  + InvalidEquationException(message: String)
+  + InvalidEquationException(message: String, cause: Throwable)
+}
+
+'==============================
+' CLASES AUXILIARES
+'==============================
 
 '==============================
 ' CLASS ecCuadraticas
@@ -33,16 +104,12 @@ class ecCuadraticas {
   + setC(int)
   + discriminante(): int
   + getRoots(): Pair<Complex, Complex>
-  + getRoots(simplify: boolean): Pair<Complex, Complex>
-
   + equals(Object): boolean
   + hashCode(): int
   + toString(): String
 
   - frac(int, int): String
-  - imagPart(...): String
-  
-  {static} + gcd(int, int): int
+  - imagPart(int, int, int): String
 }
 
 '==============================
@@ -72,7 +139,6 @@ class Complex {
 
   {static} + getInstanceCount(): int
   + equals(Object): boolean
-  + hashCode(): int
   + toString(): String
 }
 
@@ -94,9 +160,9 @@ class Pair <A, B> {
   + toString(): String
   + toString(detailed: boolean): String
   + equals(Object): boolean
-  + hashCode(): int
 }
 
+'==============================
 '==============================
 ' CLASS HistorialEcuaciones
 '==============================
@@ -137,10 +203,22 @@ class Registro {
 }
 
 '==============================
-' GUI frmSolver
+' CLASS mathUtils
 '==============================
-class frmSolver {
-  - ecuacionActual: ecCuadraticas
+class mathUtils {
+  {static} + gcd(int, int): int
+  {static} + getPrimeFactorization(int): Map<Integer, Integer>
+}
+
+'==============================
+' GUI CLASSES
+'==============================
+
+'==============================
+' CLASS frmSolver
+'==============================
+class frmSolver extends JFrame {
+  - ecuacionActual: DifferentialEquation
   - raicesActuales: Pair<Complex, Complex>
   - raizCompleja1: Complex
   - raizCompleja2: Complex
@@ -162,7 +240,7 @@ class frmSolver {
   {static} - logger: Logger
 
   + frmSolver()
-  + getEcuacionActual(): ecCuadraticas
+  + getEcuacionActual(): DifferentialEquation
   + getRaicesActuales(): Pair<Complex, Complex>
   + getRaizCompleja1(): Complex
   + getRaizCompleja2(): Complex
@@ -188,37 +266,6 @@ class frmSolver {
 }
 
 '==============================
-' CLASS frmSteps
-'==============================
-class frmSteps {
-  - mainPanel: JPanel
-
-  + frmSteps(p1: String, p2: String, p3: String, p4: String)
-  - createStepPanel(latexText: String): JPanel
-  - latexLabel(tex: String): JLabel
-}
-
-'==============================
-' CLASS frmHistorial
-'==============================
-class frmHistorial {
-  - modeloLista: DefaultListModel<String>
-  - listRegistros: JList<String>
-  - historial: HistorialEcuaciones
-
-  + frmHistorial(hist: HistorialEcuaciones)
-  - recargarLista()
-}
-
-'==============================
-' CLASS mathUtils
-'==============================
-class mathUtils {
-  {static} + gcd(int, int): int
-  {static} + getPrimeFactorization(int): Map<Integer, Integer>
-}
-
-'==============================
 ' INNER CLASS StepData (frmSolver)
 '==============================
 class StepData {
@@ -229,19 +276,54 @@ class StepData {
 }
 
 '==============================
+' CLASS frmSteps
+'==============================
+class frmSteps extends JFrame {
+  - mainPanel: JPanel
+
+  + frmSteps(p1: String, p2: String, p3: String, p4: String)
+  - createStepPanel(latexText: String): JPanel
+  - latexLabel(tex: String): JLabel
+}
+
+'==============================
+' CLASS frmHistorial
+'==============================
+class frmHistorial extends JFrame {
+  - modeloLista: DefaultListModel<String>
+  - listRegistros: JList<String>
+  - registros: ArrayList<Registro>
+  - historial: HistorialEcuaciones
+
+  + frmHistorial(hist: HistorialEcuaciones)
+  - recargarLista()
+}
+
+'==============================
 ' RELATIONSHIPS
 '==============================
 
-' Herencia de Object
-Object <|-- ecCuadraticas
-Object <|-- Complex
-Object <|-- Pair
+' Jerarquía de herencia
+DifferentialEquation <|-- LinearEquation
+LinearEquation <|-- FirstOrderLinearEquation
+LinearEquation <|-- SecondOrderLinearEquation
+
+' Implementación de interfaces
+FirstOrderLinearEquation ..|> Solvable
+SecondOrderLinearEquation ..|> Solvable
+
+' Excepciones
+FirstOrderLinearEquation ..> InvalidEquationException : throws
+SecondOrderLinearEquation ..> InvalidEquationException : throws
 
 ' Agregación en frmSolver
-frmSolver o-- ecCuadraticas : agrega
+frmSolver o-- DifferentialEquation : agrega
 frmSolver o-- Pair : agrega
 frmSolver o-- Complex : agrega
 frmSolver o-- HistorialEcuaciones : agrega
+
+' SecondOrderLinearEquation usa ecCuadraticas
+SecondOrderLinearEquation o-- ecCuadraticas : agrega
 
 ' Uso y dependencias
 ecCuadraticas ..> Pair : usa/retorna
@@ -254,8 +336,11 @@ frmSolver ..> Complex : usa
 frmSolver ..> mathUtils : usa
 frmSolver ..> frmSteps : crea
 frmSolver ..> frmHistorial : crea
+frmSolver ..> FirstOrderLinearEquation : crea
+frmSolver ..> SecondOrderLinearEquation : crea
+frmSolver ..> InvalidEquationException : maneja
 
-' Composición (inner class)
+' Composición (inner classes)
 frmSolver *-- StepData : contiene
 HistorialEcuaciones *-- Registro : contiene
 
@@ -268,36 +353,9 @@ Registro o-- Pair : agrega
 
 ' frmHistorial usa HistorialEcuaciones
 frmHistorial ..> HistorialEcuaciones : usa
+frmHistorial o-- "0..*" Registro : usa ArrayList
 
 ' Pair genérico puede contener Complex
 Pair ..> Complex : puede contener
-
-note right of HistorialEcuaciones
-  Usa ArrayList<Registro> para
-  almacenar dinámicamente el
-  historial de ecuaciones
-end note
-
-note right of frmSolver
-  Demuestra:
-  - Agregación explícita
-  - Uso de ArrayList
-  - Sobrecarga de métodos
-  - Uso de static
-end note
-
-note right of Complex
-  Demuestra:
-  - Sobrecarga de constructores
-  - Métodos static factory
-  - Variable static instanceCount
-end note
-
-note right of Pair
-  Clase genérica que
-  demuestra agregación
-  Puede contener cualquier
-  tipo de objetos
-end note
 
 @enduml

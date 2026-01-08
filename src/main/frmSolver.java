@@ -11,6 +11,11 @@ import classes.Complex;
 import classes.Pair;
 import classes.mathUtils;
 import classes.HistorialEcuaciones;
+import classes.Solvable;
+import classes.DifferentialEquation;
+import classes.SecondOrderLinearEquation;
+import classes.FirstOrderLinearEquation;
+import classes.InvalidEquationException;
 import java.util.ArrayList;
 
 /**
@@ -26,7 +31,7 @@ public class frmSolver extends javax.swing.JFrame {
     
     // ============= AGREGACIÓN EXPLÍCITA =============
     // Esta clase contiene (agrega) objetos de otras clases
-    private ecCuadraticas ecuacionActual;        // Agregación de ecCuadraticas
+    private DifferentialEquation ecuacionActual; // Ahora usamos la jerarquía: DifferentialEquation
     private Pair<Complex, Complex> raicesActuales;  // Agregación de Pair<Complex, Complex>
     private Complex raizCompleja1;               // Agregación de Complex
     private Complex raizCompleja2;               // Agregación de Complex
@@ -42,7 +47,7 @@ public class frmSolver extends javax.swing.JFrame {
         initComponents();
         
         // Inicializar objetos agregados
-        this.ecuacionActual = new ecCuadraticas();  // Objeto agregado
+        this.ecuacionActual = null;  // Se establecerá al resolver
         this.raicesActuales = null;                  // Se inicializa cuando se resuelve
         this.raizCompleja1 = new Complex();          // Objeto agregado
         this.raizCompleja2 = new Complex();          // Objeto agregado
@@ -238,18 +243,23 @@ public class frmSolver extends javax.swing.JFrame {
 
             String yc;
     
-            if(a != 0) {
-                // USANDO AGREGACIÓN: Creamos y almacenamos objeto ecCuadraticas
-                this.ecuacionActual = new ecCuadraticas(a, b, c);
-                yc = secondOrderEc(this.ecuacionActual);
-            }
-            else if (b != 0) {
-                // USANDO AGREGACIÓN: Creamos y almacenamos objeto ecCuadraticas
-                this.ecuacionActual = new ecCuadraticas(b, c);
-                yc = firstOrderEc(this.ecuacionActual);
-            }
-            else {
-                JOptionPane.showMessageDialog(this, "La expresion \""+c+"y=0\" no es una ecuación differencial");
+            try {
+                if(a != 0) {
+                    // DEMOSTRACIÓN DE UPCAST: creamos un SecondOrderLinearEquation y lo guardamos como DifferentialEquation
+                    this.ecuacionActual = new SecondOrderLinearEquation(a, b, c); // upcasting implícito
+                    yc = ((Solvable)this.ecuacionActual).toLatex();
+                }
+                else if (b != 0) {
+                    // Primer orden: guardamos como DifferentialEquation referenciando FirstOrderLinearEquation
+                    this.ecuacionActual = new FirstOrderLinearEquation(b, c);
+                    yc = ((Solvable)this.ecuacionActual).toLatex();
+                }
+                else {
+                    JOptionPane.showMessageDialog(this, "La expresion \""+c+"y=0\" no es una ecuación differencial");
+                    return;
+                }
+            } catch (InvalidEquationException ex) {
+                JOptionPane.showMessageDialog(this, "Ecuación inválida: " + ex.getMessage());
                 return;
             }
 
@@ -260,9 +270,24 @@ public class frmSolver extends javax.swing.JFrame {
             panSolution.setVisible(true);
             lblSol.setIcon(iconYc);
             
-            // ============= AGREGAR AL HISTORIAL =============
-            if (this.raicesActuales != null) {
-                historialEcuaciones.agregarRegistro(this.ecuacionActual, this.raicesActuales, yc);
+            // ============= ACTUALIZAR RAICES E AGREGAR AL HISTORIAL =============
+            // DEMOSTRACIÓN DE DOWNCAST: solicitamos roots si el objeto implementa Solvable
+            if (this.ecuacionActual instanceof Solvable) {
+                this.raicesActuales = ((Solvable)this.ecuacionActual).getRoots();
+            } else {
+                this.raicesActuales = null;
+            }
+
+            ecCuadraticas eqForHist = null;
+            if (this.ecuacionActual instanceof SecondOrderLinearEquation) {
+                eqForHist = ((SecondOrderLinearEquation)this.ecuacionActual).getUnderlyingEc();
+            } else if (this.ecuacionActual instanceof FirstOrderLinearEquation) {
+                FirstOrderLinearEquation f = (FirstOrderLinearEquation)this.ecuacionActual;
+                eqForHist = new ecCuadraticas(f.getB(), f.getC());
+            }
+
+            if (this.raicesActuales != null && eqForHist != null) {
+                historialEcuaciones.agregarRegistro(eqForHist, this.raicesActuales, yc);
             }
             
         } catch (NumberFormatException e) {
@@ -707,9 +732,9 @@ private String buildRealExp(String alpha) {
     
     /**
      * Obtiene la ecuación actual agregada
-     * @return objeto ecCuadraticas agregado
+     * @return objeto DifferentialEquation (puede ser FirstOrder o SecondOrder)
      */
-    public ecCuadraticas getEcuacionActual() {
+    public DifferentialEquation getEcuacionActual() {
         return this.ecuacionActual;
     }
     
